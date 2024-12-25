@@ -26,7 +26,7 @@ const GestureSchema = new mongoose.Schema({
 const Gesture = mongoose.model('Gesture', GestureSchema);
 
 // Обработка статических файлов (наш Frontend)
-app.use(express.static('../public')); // Предполагается, что папка с фронтендом называется "public" и находится на том же уровне, что и папка backend
+app.use(express.static('public')); // Предполагается, что папка с фронтендом называется "public" и находится на том же уровне, что и папка backend
 
 app.use(express.json()); // Middleware для обработки JSON
 
