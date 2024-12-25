@@ -1,4 +1,229 @@
-/* Your CSS code goes here */
+:root {
+    --button-size: 9vw;
+    --button-spacing: 1.5vw;
+    --button-margin: 2vw;
+    --timeline-height: 8vh;
+    --color-bg: #000000;
+    --color-primary: #FFFFFF;
+    --color-scan: #FFFFFF;
+    --button-hover-bg: rgba(255, 255, 255, 0.1);
+    --scan-animation-duration: 2s;
+    --scan-overlay-bg: rgba(0, 255, 0, 0.2);
+    --button-stroke-width: 2;
+}
 body {
-  font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+    background-color: var(--color-bg);
+    font-family: 'Roboto', sans-serif;
+    color: var(--color-primary);
+    touch-action: none;
+}
+#grid-container {
+    position: absolute;
+    top: calc(10vh + 15vh);
+    left: 0;
+    right: 0;
+    bottom: calc(var(--button-size) + var(--button-margin) * 2 + var(--timeline-height) + 2vh);
+    z-index: 2;
+}
+canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+.title-container {
+    position: absolute;
+    top: 12vh;
+    left: var(--button-margin);
+    right: var(--button-margin);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1vh 0;
+    z-index: 10;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    white-space: nowrap;
+    background-color: transparent !important;
+}
+.title-container > #title {
+    font-size: 9.88vw;
+    background-color: transparent !important;
+}
+.title-container > .ai-label {
+    font-size: calc(var(--button-size) / 4);
+    font-weight: bold;
+    background-color: var(--color-primary);
+    color: black;
+    padding: 0.5vw 1vw;
+    border-radius: 10px;
+    white-space: nowrap;
+    margin-left: 0.5vw;
+    align-self: center;
+    margin-top: -9.88vw; /* Align lower edge of oval to top of HOLOGRAM header */
+}
+.button-container {
+    position: absolute;
+    bottom: var(--button-margin);
+    left: var(--button-margin);
+    right: var(--button-margin);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+}
+button {
+    width: var(--button-size);
+    height: var(--button-size);
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s, filter 0.3s;
+    color: var(--color-primary);
+    margin: 0;
+    padding: 0;
+    position: relative;
+    filter: brightness(0.7);
+}
+button.active {
+    filter: brightness(1.5);
+}
+button:hover {
+    background-color: var(--button-hover-bg);
+}
+button svg {
+    fill: var(--color-primary);
+    width: 60%;
+    height: 60%;
+    transition: fill 0.3s;
+    vertical-align: middle;
+}
+button svg path {
+    stroke-width: var(--button-stroke-width);
+}
+/* Mic Button Styles */
+#micButton {
+    filter: brightness(0.7);
+    transition: filter 0.3s;
+}
+#micButton.active {
+    filter: brightness(1.5);
+}
+
+#timeline-container {
+    position: absolute;
+    bottom: calc(var(--button-size) + (var(--button-margin) * 2) + 1vh);
+    left: var(--button-margin);
+    width: calc(100% - (var(--button-margin) * 2));
+    height: var(--timeline-height);
+    background-color: #222;
+    z-index: 15;
+}
+#playhead {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 2px;
+    height: 100%;
+    background-color: #f00;
+    pointer-events: none;
+}
+#camera-view {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+    z-index: 1;
+}
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+.modal-content {
+    background-color: rgba(26, 26, 26, 0.9);
+    margin: 15vh auto;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 80%;
+    max-height: 70vh;
+    overflow: auto;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+.xr-arrow {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(var(--button-size) / 4);
+    height: calc(var(--button-size) / 4);
+    fill: #FFFFFF;
+    display: none;
+}
+.xr-button-active .xr-arrow {
+    display: block;
+}
+#gestureRecordButton, #toggleCameraButton, #copy-notification, #scanOverlay, #eyeButton {
+    display: block;
+}
+#gestureModal, #copy-notification, #scanOverlay {
+    display: none !important;
+}
+#scanOverlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--scan-overlay-bg);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: scanAnimation var(--scan-animation-duration) forwards;
+}
+@keyframes scanAnimation {
+    0% { opacity: 0; }
+    50% { opacity: 1; }
+    100% { opacity: 0; }
+}
+.scan-active {
+    animation: scanPulse var(--scan-animation-duration) infinite;
+}
+@keyframes scanPulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+}
+/* Additional CSS for XR arrows */
+#xrLabel {
+}
+#xrArrow1,
+#xrArrow2 {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+#xrArrow1 {
+    transform: translate(-50%, -50%) rotate(0deg); /* Rotate arrow 1 */
+}
+#xrArrow2 {
+    transform: translate(-50%, -50%) rotate(180deg); /* Rotate arrow 2 */
 }
