@@ -1,14 +1,139 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Holograms.media</title>
-  <link rel="stylesheet" href="style.css">
-   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.4/socket.io.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=7.5, user-scalable=yes">
+    <title>Holograms</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+    <script src="https://threejs.org/examples/js/loaders/FontLoader.js" defer></script>
+    <script src="https://threejs.org/examples/js/geometries/TextGeometry.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/handpose@0.0.7/dist/handpose.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.9.0/dist/tf.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handpose@0.0.7/dist/handpose.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/renderers/CSS2DRenderer.js" defer></script>
+     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+     <script src="https://unpkg.com/@telegram-mini-apps/sdk@latest/index.js"></script>
+    <script src="script.js" defer></script>
 </head>
 <body>
-  <div id="app"></div>
-   <script src="script.js"></script>
+    <video id="camera-view" autoplay playsinline></video>
+    <div class="title-container">
+        <div id="title">HOLOGRAM</div>
+        <div class="ai-label">AI CRAFT</div>
+    </div>
+    <div id="grid-container"></div>
+    <div id="copy-notification">Code copied to clipboard!</div>
+    <div id="scanOverlay"></div>
+    <div class="button-container">
+        <button id="fileButton" aria-label="Upload Audio File">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="var(--color-primary)" width="60%" height="60%">
+                <path d="M12 5v14m-7-7h14" stroke="currentColor" stroke-width="2" />
+            </svg>
+        </button>
+        <button id="playPauseButton" aria-label="Play/Pause" disabled>
+            <svg id="playIcon" class="icon-visible" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="var(--color-primary)" width="60%" height="60%">
+                <path d="M8 5v14l11-7z" />
+            </svg>
+            <svg id="pauseIcon" class="icon-hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="var(--color-primary)" width="60%" height="60%">
+                <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+            </svg>
+        </button>
+        <button id="micButton" aria-label="Microphone">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="var(--color-primary)" width="60%" height="60%">
+                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+                <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
+            </svg>
+        </button>
+        <button id="fullscreenButton" aria-label="Fullscreen">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="var(--color-primary)" width="60%" height="60%">
+                <path d="M3 3h6v2H5v4H3V3z" />
+                <path d="M3 21h6v-2H5v-4H3v6z" />
+                <path d="M21 3h-6v2h4v4h2V3z" />
+                <path d="M21 21h-6v-2h4v-4h2v6z" />
+            </svg>
+        </button>
+        <button id="xrButton" aria-label="Extended Reality">
+            <svg id="xrLabel" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="var(--color-primary)" width="60%" height="60%">
+                <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="18" fill="var(--color-primary)" dy=".3em">XR</text>
+            </svg>
+            <svg id="xrArrow1" class="xr-arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" style="display:none;">
+                <path d="M4 12a8 8 0 018-8"></path>
+                <path d="M12 4v8h-4"></path>
+            </svg>
+            <svg id="xrArrow2" class="xr-arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" style="display:none;">
+                <path d="M20 12a8 8 0 01-8 8"></path>
+                <path d="M12 20v-8h4"></path>
+            </svg>
+        </button>
+        <button id="gestureRecordButton" aria-label="Magnifier">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="var(--color-primary)" width="60%" height="60%">
+                <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="2" fill="none" />
+                <line x1="15" y1="15" x2="20" y2="20" stroke="currentColor" stroke-width="2" />
+            </svg>
+        </button>
+        <button id="scanButton" aria-label="Scan">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="60%" height="60%">
+                <path d="M6,6 h3 M15,6 h3 M6,18 h3 M15,18 h3 M6,6 v3 M6,15 v3 M18,6 v3 M18,15 v3" 
+                      stroke="var(--color-scan)" 
+                      stroke-width="2"
+                      fill="none"/>
+                <rect x="8" y="8" width="8" height="8" rx="1" ry="1" fill="var(--color-scan)"/>
+            </svg>
+        </button>
+        <button id="eyeButton" aria-label="Toggle Grids">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="var(--color-primary)" width="60%" height="60%">
+                <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+            </svg>
+        </button>
+    </div>
+    <button id="toggleCameraButton" aria-label="Switch Camera" style="display: none;">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="var(--color-primary)">
+            <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6h-2c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" />
+        </svg>
+    </button>
+    <input type="file" id="fileInput" accept="audio/*" style="display: none;">
+    <div id="timeline-container">
+        <canvas id="timeline-canvas"></canvas>
+        <div id="playhead"></div>
+    </div>
+    <div id="gestureModal" class="gesture-modal">
+        <div class="gesture-modal-content">
+            <span class="close-button" id="closeGestureModal">×</span>
+            <h2>Gesture Recording</h2>
+            <p id="gestureStatus">Press "Start Recording" to begin.</p>
+            <button id="startRecordingButton">Start Recording</button>
+            <button id="stopRecordingButton" disabled>Stop Recording</button>
+            <div id="gestureVisualization" style="margin-top:20px;">
+                <canvas id="gestureCanvas" width="500" height="300" style="background-color:#333;"></canvas>
+            </div>
+        </div>
+    </div>
+    <script>
+       const socket = io('http://localhost:3000');
+       const tg = window.Telegram.WebApp;
+       const initData = tg.initDataUnsafe;
+        if (initData && initData.user && initData.user.id) {
+            const userId = initData.user.id;
+            socket.emit('authenticate', { initData: tg.initData });
+            console.log('Telegram data:', data);
+            socket.emit('join-room', { roomId: userId, userId: userId });
+        } else {
+            console.log('Telegram data not available');
+        }
+
+        socket.on('auth-success', (data) => {
+            console.log('Authentication successful, user ID:', data.userId);
+        });
+
+        socket.on('auth-failed', () => {
+            console.log('Authentication failed');
+        });
+
+        socket.on('user-joined', (data) => {
+            console.log('New user joined:', data.userId);
+        });
+    </script>
 </body>
 </html>
