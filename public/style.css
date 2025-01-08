@@ -11,6 +11,7 @@
     --scan-overlay-bg: rgba(0, 255, 0, 0.2);
     --button-stroke-width: 2;
 }
+
 body {
     margin: 0;
     padding: 0;
@@ -21,19 +22,22 @@ body {
     color: var(--color-primary);
     touch-action: none;
 }
+
 #grid-container {
     position: absolute;
     top: calc(10vh + 15vh);
     left: 0;
     right: 0;
     bottom: calc(var(--button-size) + var(--button-margin) * 2 + var(--timeline-height) + 2vh);
-    z-index: 2;
+    z-index: 0;
 }
+
 canvas {
     width: 100%;
     height: 100%;
     display: block;
 }
+
 .title-container {
     position: absolute;
     top: 12vh;
@@ -43,27 +47,16 @@ canvas {
     align-items: center;
     justify-content: center;
     padding: 1vh 0;
-    z-index: 10;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    z-index: 1;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
     white-space: nowrap;
-    background-color: transparent !important;
 }
+
 .title-container > #title {
     font-size: 9.88vw;
-    background-color: transparent !important;
+    z-index: 1;
 }
-.title-container > .ai-label {
-    font-size: calc(var(--button-size) / 4);
-    font-weight: bold;
-    background-color: var(--color-primary);
-    color: black;
-    padding: 0.5vw 1vw;
-    border-radius: 10px;
-    white-space: nowrap;
-    margin-left: 0.5vw;
-    align-self: center;
-    margin-top: -9.88vw; /* Align lower edge of oval to top of HOLOGRAM header */
-}
+
 .button-container {
     position: absolute;
     bottom: var(--button-margin);
@@ -74,6 +67,7 @@ canvas {
     align-items: center;
     z-index: 10;
 }
+
 button {
     width: var(--button-size);
     height: var(--button-size);
@@ -90,12 +84,15 @@ button {
     position: relative;
     filter: brightness(0.7);
 }
+
 button.active {
     filter: brightness(1.5);
 }
+
 button:hover {
     background-color: var(--button-hover-bg);
 }
+
 button svg {
     fill: var(--color-primary);
     width: 60%;
@@ -103,14 +100,16 @@ button svg {
     transition: fill 0.3s;
     vertical-align: middle;
 }
+
 button svg path {
     stroke-width: var(--button-stroke-width);
 }
-/* Mic Button Styles */
+
 #micButton {
     filter: brightness(0.7);
     transition: filter 0.3s;
 }
+
 #micButton.active {
     filter: brightness(1.5);
 }
@@ -124,6 +123,7 @@ button svg path {
     background-color: #222;
     z-index: 15;
 }
+
 #playhead {
     position: absolute;
     top: 0;
@@ -133,6 +133,7 @@ button svg path {
     background-color: #f00;
     pointer-events: none;
 }
+
 #camera-view {
     position: fixed;
     top: 0;
@@ -143,6 +144,7 @@ button svg path {
     display: none;
     z-index: 1;
 }
+
 .modal {
     display: none;
     position: fixed;
@@ -152,10 +154,11 @@ button svg path {
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgba(0,0,0,0.5);
+    background-color: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
 }
+
 .modal-content {
     background-color: rgba(26, 26, 26, 0.9);
     margin: 15vh auto;
@@ -164,8 +167,9 @@ button svg path {
     max-width: 80%;
     max-height: 70vh;
     overflow: auto;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
+
 .xr-arrow {
     position: absolute;
     bottom: 100%;
@@ -176,15 +180,24 @@ button svg path {
     fill: #FFFFFF;
     display: none;
 }
+
 .xr-button-active .xr-arrow {
     display: block;
 }
-#gestureRecordButton, #toggleCameraButton, #copy-notification, #scanOverlay, #eyeButton {
+
+#gestureRecordButton,
+#toggleCameraButton,
+#copy-notification,
+#scanOverlay {
     display: block;
 }
-#gestureModal, #copy-notification, #scanOverlay {
+
+#gestureModal,
+#copy-notification,
+#scanOverlay {
     display: none !important;
 }
+
 #scanOverlay {
     display: none;
     position: fixed;
@@ -199,31 +212,155 @@ button svg path {
     justify-content: center;
     animation: scanAnimation var(--scan-animation-duration) forwards;
 }
+
 @keyframes scanAnimation {
-    0% { opacity: 0; }
-    50% { opacity: 1; }
-    100% { opacity: 0; }
+    0% {
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
 }
+
 .scan-active {
     animation: scanPulse var(--scan-animation-duration) infinite;
 }
+
 @keyframes scanPulse {
-    0% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.2); opacity: 0.7; }
-    100% { transform: scale(1); opacity: 1; }
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.2);
+        opacity: 0.7;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
-/* Additional CSS for XR arrows */
+
 #xrLabel {
+    font-size: 9.88vw;
 }
+
+#xrArrows {
+    width: 60%;
+    height: 60%;
+}
+
 #xrArrow1,
 #xrArrow2 {
     position: absolute;
     top: 50%;
+    left: 50%;
     transform: translate(-50%, -50%);
 }
+
 #xrArrow1 {
-    transform: translate(-50%, -50%) rotate(0deg); /* Rotate arrow 1 */
+    transform: translate(-50%, -50%) rotate(45deg);
 }
+
 #xrArrow2 {
-    transform: translate(-50%, -50%) rotate(180deg); /* Rotate arrow 2 */
+    transform: translate(-50%, -50%) rotate(225deg);
+}
+
+.finger-tip {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: limegreen;
+    pointer-events: none;
+    z-index: 100;
+    transform: translate(-50%, -50%);
+}
+
+#xrButton.active #xrLabel {
+    display: none;
+}
+
+#xrButton.active #xrArrows {
+    display: block;
+}
+
+#xrButton.active #xrArrow1,
+#xrButton.active #xrArrow2 {
+    display: block;
+    stroke: var(--color-primary);
+    fill: var(--color-primary);
+}
+
+#promptButton svg {
+    fill: var(--color-primary);
+    width: 40%;
+    height: 40%;
+}
+.close-button {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: white;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+#promptModal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    padding-top: 60px;
+}
+
+#promptModal .modal-content {
+    background-color: #fefefe;
+    margin: 5% auto; /* 5% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Could be more or less, depending on screen size */
+}
+
+#promptText {
+    width: calc(100% - 20px);
+    height: 150px;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    resize: vertical; /* Allows the user to vertically resize the textarea */
+}
+
+#submitPrompt {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#submitPrompt:hover {
+    background-color: #45a049;
 }
