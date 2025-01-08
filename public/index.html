@@ -9,22 +9,18 @@
     <script src="https://threejs.org/examples/js/loaders/FontLoader.js" defer></script>
     <script src="https://threejs.org/examples/js/geometries/TextGeometry.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/handpose@0.0.7/dist/handpose.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.9.0/dist/tf.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handpose@0.0.7/dist/handpose.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/renderers/CSS2DRenderer.js" defer></script>
-     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
-     <script src="https://unpkg.com/@telegram-mini-apps/sdk@latest/index.js"></script>
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <script src="script.js" defer></script>
 </head>
 <body>
-    <video id="camera-view" autoplay playsinline></video>
+    <video id="camera-view" autoplay playsinline style="display: none;"></video>
     <div class="title-container">
         <div id="title">HOLOGRAM</div>
-        <div class="ai-label">AI CRAFT</div>
     </div>
     <div id="grid-container"></div>
-    <div id="copy-notification">Code copied to clipboard!</div>
     <div id="scanOverlay"></div>
     <div class="button-container">
         <button id="fileButton" aria-label="Upload Audio File">
@@ -58,6 +54,12 @@
             <svg id="xrLabel" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="var(--color-primary)" width="60%" height="60%">
                 <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="18" fill="var(--color-primary)" dy=".3em">XR</text>
             </svg>
+            <svg id="xrArrows" class="xr-arrows" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" style="display:none;">
+                <path d="M10.0476 3.77423C12.8883 2.42628 15.9555 3.15748 18.334 5.34987" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M5.66602 18.6501C8.04458 20.8425 11.1117 21.5737 13.9524 20.2257" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M19.9438 15.9688C21.2918 13.1281 20.5606 10.0609 18.3682 7.68232" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M4.05615 8.03125C2.7082 10.872 3.4394 13.9391 5.63179 16.3177" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
             <svg id="xrArrow1" class="xr-arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" style="display:none;">
                 <path d="M4 12a8 8 0 018-8"></path>
                 <path d="M12 4v8h-4"></path>
@@ -67,7 +69,7 @@
                 <path d="M12 20v-8h4"></path>
             </svg>
         </button>
-        <button id="gestureRecordButton" aria-label="Magnifier">
+        <button id="gestureRecordButton" aria-label="Record Gesture">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="var(--color-primary)" width="60%" height="60%">
                 <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="2" fill="none" />
                 <line x1="15" y1="15" x2="20" y2="20" stroke="currentColor" stroke-width="2" />
@@ -82,17 +84,12 @@
                 <rect x="8" y="8" width="8" height="8" rx="1" ry="1" fill="var(--color-scan)"/>
             </svg>
         </button>
-        <button id="eyeButton" aria-label="Toggle Grids">
+        <button id="promptButton" aria-label="Предложить промпт">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="var(--color-primary)" width="60%" height="60%">
-                <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="18" fill="var(--color-primary)" dy=".3em">?</text>
             </svg>
-        </button>
-    </div>
-    <button id="toggleCameraButton" aria-label="Switch Camera" style="display: none;">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="var(--color-primary)">
-            <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6h-2c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" />
-        </svg>
-    </button>
+        </button>    
+        </div>
     <input type="file" id="fileInput" accept="audio/*" style="display: none;">
     <div id="timeline-container">
         <canvas id="timeline-canvas"></canvas>
@@ -110,30 +107,57 @@
             </div>
         </div>
     </div>
+    <div id="promptModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closePromptModal">×</span>
+            <h2>Предложить промпт</h2>
+            <textarea id="promptText" placeholder="Опишите ваш промпт"></textarea>
+            <button id="submitPrompt">Отправить</button>
+        </div>
+    </div>
     <script>
-       const socket = io('http://localhost:3000');
-       const tg = window.Telegram.WebApp;
-       const initData = tg.initDataUnsafe;
-        if (initData && initData.user && initData.user.id) {
-            const userId = initData.user.id;
-            socket.emit('authenticate', { initData: tg.initData });
-            console.log('Telegram data:', data);
-            socket.emit('join-room', { roomId: userId, userId: userId });
-        } else {
-            console.log('Telegram data not available');
-        }
+        document.addEventListener('DOMContentLoaded', () => {
+            const socket = io('http://localhost:3000');
 
-        socket.on('auth-success', (data) => {
-            console.log('Authentication successful, user ID:', data.userId);
-        });
+            socket.on('connect', () => {
+                console.log('Connected to server via Socket.IO');
+            });
 
-        socket.on('auth-failed', () => {
-            console.log('Authentication failed');
-        });
+            const initData = Telegram.WebApp.initDataUnsafe;
+            const userId = initData.user ? initData.user.id : null;
 
-        socket.on('user-joined', (data) => {
-            console.log('New user joined:', data.userId);
+            if (userId) {
+                socket.emit('authenticate', { initData: Telegram.WebApp.initData });
+                socket.emit('join-room', { roomId: userId, userId: userId });
+            } else {
+                console.log('Telegram user data not available');
+            }
+
+            socket.on('auth-success', (data) => {
+                console.log('Authentication successful, user ID:', data.userId);
+            });
+
+            socket.on('auth-failed', () => {
+                console.log('Authentication failed');
+            });
+
+            socket.on('user-joined', (data) => {
+                console.log('New user joined:', data.userId, 'Socket ID:', data.socketId);
+            });
+
+            socket.on('connect_error', (err) => {
+                console.log('Connection Error:', err);
+            });
+
+            socket.on('reconnect_error', (err) => {
+                console.log('Reconnection Error:', err);
+            });
+
+            socket.on('disconnect', (reason) => {
+                console.log('Disconnected:', reason);
+            });
         });
     </script>
+
 </body>
 </html>
