@@ -2,21 +2,20 @@ const express = require('express');
 const http = require('http');
 const socketIO = require('socket.io');
 const mongoose = require('mongoose');
-const axios = require('axios'); // Эта библиотека пока не используется, но может пригодиться в будущем
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 
-// Подключение к MongoDB (замените на свои данные!)
-mongoose.connect('mongodb+srv://<username>:<password>@<your-cluster>.mongodb.net/holograms?retryWrites=true&w=majority', {
+// Подключение к MongoDB Atlas (вставьте вашу строку подключения)
+mongoose.connect('mongodb+srv://neurocoderz:fjpxHJRnmn8vC8Us@cluster0.vugws.mongodb.net/holograms?retryWrites=true&w=majority&appName=Cluster0', {
     useNewUrlParser: true,
     useUnifiedTopology: true
 })
 .then(() => console.log('MongoDB connected'))
 .catch(err => console.error('MongoDB connection error:', err));
 
-// Схема для жестов (пример)
+// Схема для жестов
 const GestureSchema = new mongoose.Schema({
     userId: { type: Number, required: true }, // Используем Number для Telegram user_id
     gestureData: Object,
@@ -25,7 +24,7 @@ const GestureSchema = new mongoose.Schema({
 
 const Gesture = mongoose.model('Gesture', GestureSchema);
 
-// Обработка статических файлов (наш Frontend)
+// Обработка статических файлов (фронтенд)
 app.use(express.static('public'));
 
 app.use(express.json()); // Middleware для обработки JSON
@@ -58,7 +57,7 @@ io.on('connection', (socket) => {
     // Аутентификация через Telegram Web App
     socket.on('authenticate', (data) => {
         const { initData } = data;
-        const botToken = process.env.TELEGRAM_BOT_TOKEN; // Получите токен бота из переменных окружения
+        const botToken = process.env.7452688207:AAFX9wGlF4LTL8aa2sd5mBO3HdLiE-3JMdk; // Берем токен бота из переменных окружения
 
         if (checkSignature(initData, botToken)) {
             const user = JSON.parse(decodeURIComponent(initData.user))
@@ -113,7 +112,7 @@ io.on('connection', (socket) => {
             }
         }
 
-        // Отправка жеста другим пользователям в той же комнате (замените на socket.to(roomId))
+        // Отправка жеста другим пользователям в той же комнате
         if (socket.rooms.size > 0) {
             socket.to(Array.from(socket.rooms)[0]).emit('gesture', gestureData);
         } else {
@@ -126,7 +125,7 @@ io.on('connection', (socket) => {
     });
 });
 
-// Получение жестов пользователя
+// Получение жестов пользователя (пример)
 app.get('/api/gestures/:userId', async (req, res) => {
     const { userId } = req.params;
     try {
