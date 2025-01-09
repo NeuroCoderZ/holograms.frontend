@@ -1,35 +1,51 @@
 const express = require('express');
 const http = require('http');
 const socketIO = require('socket.io');
-const mongoose = require('mongoose');
+const { MongoClient, ServerApiVersion } = require('mongodb');
 
+// Настройки приложения
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
+const PORT = process.env.PORT || 3000;
 
-// Подключение к MongoDB Atlas (вставьте вашу строку подключения)
-mongoose.connect('mongodb+srv://neurocoderz:fjpxHJRnmn8vC8Us@cluster0.vugws.mongodb.net/holograms?retryWrites=true&w=majority&appName=Cluster0', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
-.then(() => console.log('MongoDB connected'))
-.catch(err => console.error('MongoDB connection error:', err));
+// Замените на ваш реальный токен бота
+const botToken = '7452688207:AAFX9wGlF4LTL8aa2sd5mBO3HdLiE-3JMdk'; 
 
-// Схема для жестов
-const GestureSchema = new mongoose.Schema({
-    userId: { type: Number, required: true }, // Используем Number для Telegram user_id
-    gestureData: Object,
-    timestamp: { type: Date, default: Date.now }
+// Строка подключения к MongoDB Atlas (замените YOUR_PASSWORD на ваш пароль)
+const uri = "mongodb+srv://neurocoderz:fjpxHJRnmn8vC8Us@cluster0.vugws.mongodb.net/holograms?retryWrites=true&w=majority&appName=Cluster0";
+
+// Создаем клиент MongoDB
+const client = new MongoClient(uri, {
+    serverApi: {
+        version: ServerApiVersion.v1,
+        strict: true,
+        deprecationErrors: true,
+    }
 });
 
-const Gesture = mongoose.model('Gesture', GestureSchema);
+// Подключаемся к MongoDB
+async function connectToMongoDB() {
+    try {
+        await client.connect();
+        console.log("Connected to MongoDB!");
+        // Проверка соединения
+        await client.db("admin").command({ ping: 1 });
+        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    } catch (err) {
+        console.error('MongoDB connection error:', err);
+    }
+}
 
-// Обработка статических файлов (фронтенд)
+connectToMongoDB();
+
+// Middleware для обработки JSON
+app.use(express.json());
+
+// Middleware для статических файлов
 app.use(express.static('public'));
 
-app.use(express.json()); // Middleware для обработки JSON
-
-// Проверка подписи данных из Telegram Web App
+// Функция проверки подписи данных из Telegram Web App
 function checkSignature(initData, botToken) {
     const crypto = require('crypto');
     const data = new URLSearchParams(initData);
@@ -51,28 +67,28 @@ function checkSignature(initData, botToken) {
     return calculatedHash === hash;
 }
 
+// Socket.IO обработчики событий
 io.on('connection', (socket) => {
     console.log('Новый пользователь подключился:', socket.id);
 
     // Аутентификация через Telegram Web App
     socket.on('authenticate', (data) => {
         const { initData } = data;
-        const botToken = process.env.7452688207:AAFX9wGlF4LTL8aa2sd5mBO3HdLiE-3JMdk; // Берем токен бота из переменных окружения
 
         if (checkSignature(initData, botToken)) {
-            const user = JSON.parse(decodeURIComponent(initData.user))
+            const user = JSON.parse(decodeURIComponent(initData.user));
             const userId = user.id;
-            socket.userId = userId; // Сохраняем userId в объекте socket
+            socket.userId = userId;
             console.log(`Пользователь ${userId} успешно аутентифицирован.`);
             socket.emit('auth-success', { userId: userId });
         } else {
             console.log('Ошибка аутентификации.');
             socket.emit('auth-failed');
-            socket.disconnect(true); // Закрываем соединение, если аутентификация не удалась
+            socket.disconnect(true);
         }
     });
 
-    // Присоединение к комнате
+    // Присоединение к комнате (пока не используется, но может пригодиться для WebRTC)
     socket.on('join-room', (data) => {
         const { roomId, userId } = data;
         socket.join(roomId);
@@ -80,7 +96,7 @@ io.on('connection', (socket) => {
         socket.to(roomId).emit('user-joined', { userId: userId, socketId: socket.id });
     });
 
-    // Обмен данными для установки соединения WebRTC
+    // Обмен данными для установки соединения WebRTC (пока не используется)
     socket.on('offer', (data) => {
         socket.to(data.roomId).emit('offer', data);
     });
@@ -93,26 +109,13 @@ io.on('connection', (socket) => {
         socket.to(data.roomId).emit('ice-candidate', data);
     });
 
-    // Обработка жестов
-    socket.on('gesture', async (gestureData) => {
+    // Обработка жестов (заглушка, нужно будет реализовать сохранение в MongoDB)
+    socket.on('gesture', (gestureData) => {
         console.log('Получен жест:', gestureData);
 
-        // Сохранение жеста в MongoDB (пример)
-        if (socket.userId) {
-            const gesture = new Gesture({
-                userId: socket.userId,
-                gestureData: gestureData
-            });
+        // Здесь будет код для сохранения жеста в MongoDB с использованием клиента MongoDB
 
-            try {
-                await gesture.save();
-                console.log('Жест сохранен');
-            } catch (err) {
-                console.error('Ошибка сохранения жеста:', err);
-            }
-        }
-
-        // Отправка жеста другим пользователям в той же комнате
+        // Отправка жеста другим пользователям в той же комнате (заглушка)
         if (socket.rooms.size > 0) {
             socket.to(Array.from(socket.rooms)[0]).emit('gesture', gestureData);
         } else {
@@ -125,17 +128,5 @@ io.on('connection', (socket) => {
     });
 });
 
-// Получение жестов пользователя (пример)
-app.get('/api/gestures/:userId', async (req, res) => {
-    const { userId } = req.params;
-    try {
-        const gestures = await Gesture.find({ userId: parseInt(userId) }).sort({ timestamp: -1 });
-        res.json(gestures);
-    } catch (err) {
-        console.error('Ошибка получения жестов:', err);
-        res.status(500).send('Ошибка сервера');
-    }
-});
-
-const PORT = process.env.PORT || 3000;
+// Запуск сервера
 server.listen(PORT, () => console.log(`Сервер запущен на порту ${PORT}`));
