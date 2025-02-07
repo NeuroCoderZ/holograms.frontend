@@ -1,0 +1,21 @@
+{
+  "name": "holograms-frontend",
+  "version": "1.0.0",
+  "description": "Frontend for the Holograms project",
+  "main": "script.js",
+  "scripts": {
+    "start": "http-server"
+  },
+  "dependencies": {
+    "@tensorflow-models/handpose": "^0.0.7",
+    "@tensorflow/tfjs": "^3.9.0",
+    "axios": "^1.6.7",
+    "hammerjs": "^2.0.8",
+    "http-server": "^14.1.1",
+    "three": "^0.128.0"
+  },
+  "devDependencies": {},
+  "keywords": [],
+  "author": "",
+  "license": "Apache-2.0"
+}
